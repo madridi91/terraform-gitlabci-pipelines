@@ -39,8 +39,8 @@ def get_versions(repo, token):
     return versions
 
 def main(args):
-    input_file=open(args.file, 'r')
     try:
+        input_file=open(args.file, 'r')
         constraint = hcl.load(input_file)['terraform']['required_version']
     except:
         print('No required version, the latest will be used.')
