@@ -1,4 +1,3 @@
-# Requires: pip install requests semantic_version pyhcl
 import argparse
 import requests
 import json
@@ -41,7 +40,7 @@ def main(args):
         input_file=open(args.file, 'r')
         constraint = hcl.load(input_file)['terraform']['required_version']
     except:
-        constraint = '>= 0.1.0'
+        constraint = '>= 0.1.0,< 0.14.0'
     token = get_token(args.username, args.password)
     all_versions = sorted(get_versions(args.repository, token), key=LooseVersion)
     # Get the required versions range
