@@ -76,4 +76,5 @@ $workspace:
   needs:
     - job: get-version
       artifacts: true
+EOT
 done
