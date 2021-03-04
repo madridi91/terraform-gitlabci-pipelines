@@ -55,7 +55,8 @@ cat << EOT
 
 get-version:
   stage: test
-  image: python:2.7.17
+  image:
+    name: python:2.7.17
   before_script:
   - pip install requests semantic_version pyhcl
   script:
