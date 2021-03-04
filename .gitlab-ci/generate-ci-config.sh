@@ -3,15 +3,13 @@
 cat << 'EOT'
 workflow:
   rules:
-    - if: $CI_MERGE_REQUEST_IID
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $PARENT_PIPELINE_SOURCE == "schedule"
+    - if: $CI_COMMIT_BRANCH == "fix-tag-error"
+    - if: $PARENT_PIPELINE_SOURCE == "web"
 
 variables:
   PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   ROOT_PIPELINE_SOURCE: $ROOT_PIPELINE_SOURCE
-  TF_IMAGE_REPOSITORY: camptocamp/terraform
-  TF_IMAGE_TAG: 0.13.6
+  TF_IMAGE_REPOSITORY: madridi9/terraform
 
 .init-gpg: &init-gpg |
   uid=$(bash -c 'gpg --with-colons --import-options import-show --import --quiet <(echo "$GPG_SECRET_KEY")'|grep ^uid:|sed -n 's/.*<\(.*\)>.*/\1/p')
@@ -55,13 +53,25 @@ workspace=$(echo "$tf_root" | sed -e "s@^\./@@"| tr "/" "_")
 
 cat << EOT
 
+get-version:
+  stage: get-version
+  image: python:2.7.17
+  before_script:
+  - pip install requests semantic_version pyhcl
+  script:
+    - wget https://raw.githubusercontent.com/madridi91/terraform-gitlabci-pipelines/testci/.gitlab-ci/get_version/get_version.py
+    - echo "TF_IMAGE_TAG=$(python get_version.py -u 'madridi9' -p 'Btibet3110@' -r "$TF_IMAGE_REPOSITORY" -f "$tf_root/version.tf")" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+
 $workspace:
   stage: test
   variables:
     TF_ROOT: "$tf_root"
   trigger:
     include:
-      - https://raw.githubusercontent.com/camptocamp/terraform-gitlabci-pipelines/master/.gitlab-ci/terraform-pipeline.yaml
+      - https://raw.githubusercontent.com/madridi91/terraform-gitlabci-pipelines/testci/.gitlab-ci/terraform-pipeline.yaml
     strategy: depend
 EOT
 if [ "$PARENT_PIPELINE_SOURCE" != "schedule" ]; then
@@ -69,6 +79,9 @@ if [ "$PARENT_PIPELINE_SOURCE" != "schedule" ]; then
   rules:
     - changes:
         - "$tf_root/*"
+  needs:
+    - job: get-version
+      artifacts: true
 EOT
 fi
 done
