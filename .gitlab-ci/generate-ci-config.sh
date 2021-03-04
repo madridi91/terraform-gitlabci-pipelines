@@ -54,7 +54,7 @@ workspace=$(echo "$tf_root" | sed -e "s@^\./@@"| tr "/" "_")
 cat << EOT
 
 get-version:
-  stage: get-version
+  stage: test
   image: python:2.7.17
   before_script:
   - pip install requests semantic_version pyhcl
@@ -73,15 +73,7 @@ $workspace:
     include:
       - https://raw.githubusercontent.com/madridi91/terraform-gitlabci-pipelines/testci/.gitlab-ci/terraform-pipeline.yaml
     strategy: depend
-EOT
-if [ "$PARENT_PIPELINE_SOURCE" != "schedule" ]; then
-	cat << EOT
-  rules:
-    - changes:
-        - "$tf_root/*"
   needs:
     - job: get-version
       artifacts: true
-EOT
-fi
 done
